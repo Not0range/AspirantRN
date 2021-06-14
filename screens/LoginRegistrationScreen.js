@@ -4,6 +4,8 @@ import { TabView, SceneMap } from 'react-native-tab-view';
 import 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { GetUrl } from './Utils'
+
 let nav;
 let loginForm = {login:"",password:""};
 let registrationForm=  {userName:"",email:"",password:""};
@@ -97,20 +99,21 @@ function LoginClick(){
     Alert.alert('Ошибка','Введите логин')
     return;
   }
-  fetch('http://192.168.100.49/api/Account/login', {
+  fetch(`http://${GetUrl()}/api/Account/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json;charset=utf-8'
     },
     body: JSON.stringify(loginForm),
     credentials:'include'
-
   })
   .then(res =>{
+    console.log(JSON.stringify(res));
     if(res.ok){
-      fetch('http://192.168.100.49/api/person/get', {
+      fetch(`http://${GetUrl()}/api/person/get`, {
         credentials: 'include'
       }).then(res=>{
+        console.log(JSON.stringify(res));
         if(res.ok)
           res.json().then(r => {
             nav.navigate('Menu', r);
@@ -144,7 +147,7 @@ function RegistrationClick(){
     Alert.alert('Ошибка','Пароли не совпадают, попробуйте еще раз.')
    return;
   }
-  fetch('http://192.168.100.49/api/Account/Registration',{
+  fetch(`http://${GetUrl()}/api/Account/Registration`,{
     method: 'POST',
     headers: {
       'Content-Type': 'application/json;charset=utf-8'
@@ -153,10 +156,12 @@ function RegistrationClick(){
     credentials:'include'
   })
   .then(res =>{
+    console.log(JSON.stringify(res));
     if(res.ok){
-      fetch('http://192.168.100.49/api/person/get', {
+      fetch(`http://${GetUrl()}/api/person/get`, {
         credentials: 'include'
       }).then(res=> {
+        console.log(JSON.stringify(res));
         if(res.ok)
           res.json().then(r => {
             nav.navigate('Menu', r);
