@@ -102,7 +102,6 @@ function individualInfo(){
       <View style={{marginTop: 25}}>
         <Button title='Редактировать' onPress={() => {
           backHandler.remove();
-          backHandler = undefined;
           nav.navigate('Individual', [indiv]);
         }}></Button>
       </View>
@@ -120,11 +119,13 @@ function aspirantInfo(){
     faculty: '',
     decree: '',
     dissertationTheme: '',
-    teacherId: 0
+    teacherId: 0,
+    new: true
   });
   const [teacher, setTeacher] = useState('');
   useEffect(() =>{
     if(aspirant != null){
+      aspirant.new = false;
       setAspirant(aspirant);
     }
     if(teachers != null){
@@ -150,7 +151,6 @@ function aspirantInfo(){
       <View style={{marginTop: 25}}>
         <Button title='Редактировать' onPress={() => {
           backHandler.remove();
-          backHandler = undefined;
           nav.navigate('Aspirant', [individual, aspir, teachers]);
         }}></Button>
       </View>

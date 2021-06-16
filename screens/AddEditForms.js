@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, StyleSheet, Text, View, StatusBar, Switch, TextInput, Alert, Picker, ScrollView } from 'react-native';
 import 'react-native-gesture-handler';
 import Moment from 'moment';
@@ -91,7 +91,8 @@ export function AddEditAspirant({route, navigation}){
     individual = route.params[0];
     aspirant = route.params[1];
     teachers = route.params[2] != null ? route.params[2] : [];
-    edit = aspirant.foreignLanguage != '';
+    edit = !aspirant.new;
+    console.log(edit);
 
     const [t, setTeacher] = useState(aspirant.teacherId);
     return(
