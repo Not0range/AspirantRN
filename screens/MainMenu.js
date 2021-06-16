@@ -1,79 +1,213 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { Button, StyleSheet, Text, View, StatusBar, useWindowDimensions, TextInput  } from 'react-native';
+import { Button, StyleSheet, Text, View, StatusBar, BackHandler, TextInput  } from 'react-native';
+import { GetUrl } from './Utils';
+import Moment from 'moment';
 
 const Drawer = createDrawerNavigator();
 let nav;
 
 let individual={};
 
+let aspirant = null;
+
+let teachers = null;
+
+const backAction = () => {
+  nav.navigate('MainScreen');
+  return true;
+};
+
+let backHandler;
+
 export function Menu({ route, navigation}){
   nav = navigation;
-  individual = route.params;
+  individual = route.params[0];
+  if(route.params[1])
+    aspirant = route.params[1];
+
+  backHandler = BackHandler.addEventListener(
+    "hardwareBackPress",
+    backAction
+  );
+
+  useEffect(() => {
+    if(aspirant == null){
+      fetch(`http://${GetUrl()}/api/Aspirant/Get`)
+      .then(res => {
+        if(res.status == 200){
+          res.json().then(r => {
+            aspirant = r;
+          });
+        }
+      });
+    }
+    if(teachers == null){
+      fetch(`http://${GetUrl()}/api/teacher/get`)
+      .then(res => {
+        if(res.status == 200){
+          res.json().then(r => {
+            teachers = r;
+          });
+        }
+      })
+    }
+  })
+  
   return(
-    <Drawer.Navigator>
+    <Drawer.Navigator >
       <Drawer.Screen name="Информация о физ. лице" component={individualInfo} />
-      <Drawer.Screen name="Информация о аспиранте" component={aspirantInfo} />
       <Drawer.Screen name="Вступительные экзамены" component={entryExams} />
-      <Drawer.Screen name="Список руководителей" component={executiveList} />
+      <Drawer.Screen name="Информация об аспиранте" component={aspirantInfo} />
+      <Drawer.Screen name="Список преподавателей" component={teacherList} />
+      <Drawer.Screen name="Экзамены/зачёты" component={examsList} />
     </Drawer.Navigator>
   )
 }
 
 function individualInfo(){
+  const [indiv, setIndividual] = useState({
+    lastname: '',
+    firstname: '',
+    patronymic: '',
+    birthdate: '',
+    citizenship: '',
+    passport: '',
+    workbook: false,
+    workplaces: '',
+    contacts: '',
+    _birthdate: ''
+  });
+  useEffect(() => {
+    if(individual != null){
+      individual._birthdate = Moment(individual.birthdate).format('DD.MM.yyyy');
+      setIndividual(individual);
+    }
+  });
   return (
     <View style={{ flex: 1, margin: 10, paddingTop: StatusBar.currentHeight}}>
       <Text style={styles.header}>Данные о физическом лице</Text>
-      <Text>Фамилия: {individual.lastname}</Text>
-      <Text>Имя: {individual.firstname}</Text>
-      <Text>Отчество: {individual.patronymic}</Text>
-      <Text>Дата рождения: {`${individual.birthdate.substr(8, 2)}.${individual.birthdate.substr(5, 2)}` + 
-        `.${individual.birthdate.substr(0, 4)}`}</Text>
-      <Text>Гражданство: {individual.citizenship}</Text>
-      <Text>Документ: {individual.passport}</Text>
-      <Text>Трудовая книжка: {individual.workbook ? 'В наличии': 'Отсутствует'}</Text>
-      <Text>Место работы: {individual.workplaces}</Text>
-      <Text>Контакты: {individual.contacts}</Text>
+      <Text>Фамилия: {indiv.lastname}</Text>
+      <Text>Имя: {indiv.firstname}</Text>
+      <Text>Отчество: {indiv.patronymic}</Text>
+      <Text>Дата рождения: {`${indiv._birthdate}`}</Text>
+      <Text>Гражданство: {indiv.citizenship}</Text>
+      <Text>Документ: {indiv.passport}</Text>
+      <Text>Трудовая книжка: {indiv.workbook ? 'В наличии': 'Отсутствует'}</Text>
+      <Text>Место работы: {indiv.workplaces}</Text>
+      <Text>Контакты: {indiv.contacts}</Text>
       <View style={{marginTop: 25}}>
-        <Button title='Редактировать' onPress={openIndividual}></Button>
+        <Button title='Редактировать' onPress={() => {
+          backHandler.remove();
+          nav.navigate('Individual', [indiv]);
+        }}></Button>
       </View>
     </View>
   );
 }
 
 function aspirantInfo(){
+  const [aspir, setAspirant] = useState({
+    foreignLanguage: '',
+    enducationForm: '',
+    enducationDirection: '',
+    specialty: '',
+    cathedra: '',
+    faculty: '',
+    decree: '',
+    dissertationTheme: '',
+    teacherId: 0
+  });
+  const [teacher, setTeacher] = useState('');
+  useEffect(() =>{
+    if(aspirant != null){
+      setAspirant(aspirant);
+    }
+    if(teachers != null){
+      let e = teachers.find(i => i.id == aspir.teacherId);
+      if(e){
+        setTeacher(`${e.faculty}. ${e.cathedra}: ${e.lastname} ` +
+          `${e.firstname[0]}. ${e.patronymic[0]}.`);
+      }
+    }
+  });
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Тут аспиранты</Text>
+    <View style={{ flex: 1, margin: 10, paddingTop: StatusBar.currentHeight}}>
+      <Text style={styles.header}>Данные об аспиранте</Text>
+      <Text>Изучаемый язык: {aspir.foreignLanguage}</Text>
+      <Text>Форма обучения: {aspir.enducationForm}</Text>
+      <Text>Направление обучения: {aspir.enducationDirection}</Text>
+      <Text>Специальность: {aspir.specialty}</Text>
+      <Text>Кафедра: {aspir.cathedra}</Text>
+      <Text>Факультет: {aspir.faculty}</Text>
+      <Text>Приказ о зачислении: {aspir.decree}</Text>
+      <Text>Тема диссертации: {aspir.dissertationTheme}</Text>
+      <Text>Руководитель: {teacher}</Text> 
+      <View style={{marginTop: 25}}>
+        <Button title='Редактировать' onPress={() => {
+          backHandler.remove();
+          nav.navigate('Aspirant', [individual, aspirant, teachers]);
+        }}></Button>
+      </View>
     </View>
   );
 }
 
 function entryExams(){
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Тут экзамены</Text>
+    <View style={{ flex: 1, margin: 10, paddingTop: StatusBar.currentHeight}}>
+    <Text style={styles.header}>Вступительные экзамены</Text>
     </View>
   );
 }
 
-function executiveList(){
+function teacherList(){
+  const [ts, setTeachers] = useState([]);
+  useEffect(() =>{
+    if(teachers != null){
+      setTeachers(teachers);
+    }
+  });
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Руководители</Text>
+    <View style={{ flex: 1, margin: 10, paddingTop: StatusBar.currentHeight}}>
+      <Text style={styles.header}>Данные о преподавателях</Text>
+      {TeachersComp(ts)}
     </View>
   );
 }
 
-function openIndividual(){
-  nav.navigate('Individual', individual);
+const TeachersComp = arg => {
+  if(arg.length > 0)
+    return (arg.map(e => (
+      <View key={e.id} style={styles.teacher}>
+        <Text>{e.lastname} {e.firstname} {e.patronymic}</Text>
+        <Text>{e.cathedra} {e.faculty}</Text>
+      </View>
+    )));
+}
+
+function examsList(){
+  return (
+    <View style={{ flex: 1, margin: 10, paddingTop: StatusBar.currentHeight}}>
+      <Text style={styles.header}>Зачёты/экзамены</Text>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
   header: {
     fontSize: 24,
-    marginBottom: 10
+    marginBottom: 10,
+    textAlign: 'center'
+  },
+  teacher: {
+    marginVertical: 1,
+    marginHorizontal: 5,
+    padding: 10,
+    borderColor: '#fff',
+    borderRadius: 6,
+    borderWidth: 2
   }
 });

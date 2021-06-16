@@ -116,7 +116,7 @@ function LoginClick(){
         console.log(JSON.stringify(res));
         if(res.ok)
           res.json().then(r => {
-            nav.navigate('Menu', r);
+            nav.navigate('Menu', [r]);
           });
         else if(res.status == 404)
           nav.navigate('Individual', null);
@@ -164,7 +164,7 @@ function RegistrationClick(){
         console.log(JSON.stringify(res));
         if(res.ok)
           res.json().then(r => {
-            nav.navigate('Menu', r);
+            nav.navigate('Menu', [r]);
           });
         else if(res.status == 404)
           nav.navigate('Individual', null);
