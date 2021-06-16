@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, StyleSheet, Text, View, StatusBar, Switch, TextInput, Alert, Picker  } from 'react-native';
+import { Button, StyleSheet, Text, View, StatusBar, Switch, TextInput, Alert, Picker, ScrollView } from 'react-native';
 import 'react-native-gesture-handler';
 import Moment from 'moment';
 
@@ -38,7 +38,7 @@ export function AddEditIndividual({route, navigation}){
         individual.workbook = !isEnabled;
     };
     return(
-        <View style={{flex: 1, paddingTop: StatusBar.currentHeight, margin: 10}}>
+        <ScrollView style={{flex: 1, paddingTop: StatusBar.currentHeight, margin: 10}}>
             <TextInput style={styles.textInputs}
             defaultValue={individual.lastname}
             onChangeText={v=>individual.lastname = v} placeholder="Фамилия" />
@@ -82,20 +82,20 @@ export function AddEditIndividual({route, navigation}){
             <View style={{paddingHorizontal: 10}}>
                 <Button style={{marginHorizontal: 10}} onPress={Individual} title="Сохранить"/>
             </View>
-        </View>
+        </ScrollView>
     );
 }
 
 export function AddEditAspirant({route, navigation}){
-    edit = route.params[1].foreignLanguage != '';
     nav = navigation;
     individual = route.params[0];
     aspirant = route.params[1];
     teachers = route.params[2] != null ? route.params[2] : [];
+    edit = aspirant.foreignLanguage != '';
 
     const [t, setTeacher] = useState(aspirant.teacherId);
     return(
-        <View style={{flex: 1, paddingTop: StatusBar.currentHeight, margin: 10}}>
+        <ScrollView style={{flex: 1, paddingTop: StatusBar.currentHeight, margin: 10}}>
             <TextInput style={styles.textInputs}
             defaultValue={aspirant.foreignLanguage}
             onChangeText={v=>aspirant.foreignLanguage = v} placeholder="Изучаемый язык" />
@@ -146,7 +146,7 @@ export function AddEditAspirant({route, navigation}){
             <View style={{paddingHorizontal: 10}}>
                 <Button style={{marginHorizontal: 10}} onPress={Aspirant} title="Сохранить"/>
             </View>
-        </View>
+        </ScrollView>
     );
 }
 
@@ -175,10 +175,8 @@ function Individual(){
         Alert.alert('Ошибка', 'Введите паспортные данные');
         return;
     }
-    if(individual.workplaces == ''){
-        Alert.alert('Ошибка', 'Введите место работы');
-        return;
-    }
+    if(individual.workplaces == '')
+        individual.workplaces= null;
     if(individual.contacts == ''){
         Alert.alert('Ошибка', 'Введите контактные данные');
         return;

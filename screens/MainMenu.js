@@ -15,11 +15,6 @@ let aspirant = null;
 
 let teachers = null;
 
-const backAction = () => {
-  nav.navigate('MainScreen');
-  return true;
-};
-
 let backHandler;
 
 export function Menu({ route, navigation}){
@@ -27,11 +22,17 @@ export function Menu({ route, navigation}){
   individual = route.params[0];
   if(route.params[1])
     aspirant = route.params[1];
-
-  backHandler = BackHandler.addEventListener(
-    "hardwareBackPress",
-    backAction
-  );
+    
+  if(!backHandler){
+    backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        backHandler.remove();
+        nav.navigate('MainScreen');
+        return true;
+      }
+    );
+  }
 
   useEffect(() => {
     if(aspirant == null){
@@ -101,6 +102,7 @@ function individualInfo(){
       <View style={{marginTop: 25}}>
         <Button title='Редактировать' onPress={() => {
           backHandler.remove();
+          backHandler = undefined;
           nav.navigate('Individual', [indiv]);
         }}></Button>
       </View>
@@ -148,7 +150,8 @@ function aspirantInfo(){
       <View style={{marginTop: 25}}>
         <Button title='Редактировать' onPress={() => {
           backHandler.remove();
-          nav.navigate('Aspirant', [individual, aspirant, teachers]);
+          backHandler = undefined;
+          nav.navigate('Aspirant', [individual, aspir, teachers]);
         }}></Button>
       </View>
     </View>
