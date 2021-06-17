@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button, StyleSheet, Text, View, StatusBar, Switch, TextInput, Alert, Picker, ScrollView } from 'react-native';
 import 'react-native-gesture-handler';
-import Moment from 'moment';
+import moment, {Moment} from 'moment';
 
 import { GetUrl } from './Utils'
 
@@ -92,7 +92,6 @@ export function AddEditAspirant({route, navigation}){
     aspirant = route.params[1];
     teachers = route.params[2] != null ? route.params[2] : [];
     edit = !aspirant.new;
-    console.log(edit);
 
     const [t, setTeacher] = useState(aspirant.teacherId);
     return(
@@ -183,6 +182,7 @@ function Individual(){
         return;
     }
 
+    individual.birthdate = moment(individual._birthdate, 'DD.MM.yyyy').toISOString();
     if(!edit){
         fetch(`http://${GetUrl()}/api/person/add`, {
             method: 'POST',

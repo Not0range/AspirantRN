@@ -108,12 +108,10 @@ function LoginClick(){
     credentials:'include'
   })
   .then(res =>{
-    console.log(JSON.stringify(res));
     if(res.ok){
       fetch(`http://${GetUrl()}/api/person/get`, {
         credentials: 'include'
       }).then(res=>{
-        console.log(JSON.stringify(res));
         if(res.ok)
           res.json().then(r => {
             nav.navigate('Menu', [r]);
@@ -161,7 +159,6 @@ function RegistrationClick(){
       fetch(`http://${GetUrl()}/api/person/get`, {
         credentials: 'include'
       }).then(res=> {
-        console.log(JSON.stringify(res));
         if(res.ok)
           res.json().then(r => {
             nav.navigate('Menu', [r]);
