@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native';
-import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Button, StyleSheet, Text, View, StatusBar, BackHandler, TextInput } from 'react-native';
 import { GetUrl } from '../Utils';
 import Moment from 'moment';
 
-import { getNavigator, getSpecialties } from '../MainMenu';
+import { getNavigator, getSpecialties, getTeachers } from '../MainMenu';
 
 export function aspirantInfo({route}){
     const [loading, setLoading] = useState(true);
@@ -48,7 +46,7 @@ export function aspirantInfo({route}){
                 <Text>Специальность: {getSpecialty(aspirant.specialtyId)}</Text>
                 <Text>Приказ: {aspirant.decree}</Text>
                 <Text>Тема диссертации: {aspirant.dissertationTheme}</Text>
-                <Text>Руководитель: </Text>
+                <Text>Руководитель: {getTeacher(aspirant.teacherId)}</Text>
             </View>)}
         </View>
     );
@@ -60,4 +58,12 @@ function getSpecialty(id){
         return '';
     else
         return s.title;
+}
+
+function getTeacher(id){
+    let t = getTeachers().find(t => t.id == id);
+    if(t == null)
+        return "-";
+    else
+        return `${t.rank} ${t.lastname} ${t.firstname[0]}. ${t.patronymic[0]}.`;
 }

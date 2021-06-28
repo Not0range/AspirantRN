@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native';
-import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Button, StyleSheet, Text, View, 
     StatusBar, BackHandler, TextInput, ScrollView } from 'react-native';
 import { GetUrl } from '../Utils';

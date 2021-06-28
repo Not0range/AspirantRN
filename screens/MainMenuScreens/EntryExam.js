@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native';
-import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Button, StyleSheet, Text, View, 
     StatusBar, BackHandler, TextInput, ScrollView } from 'react-native';
 import { GetUrl } from '../Utils';
@@ -45,7 +43,6 @@ export function entryExam() {
             {!updatedExam && !updatedPassing ? 
             <Text style={{alignSelf: 'center'}}>Загрузка...</Text> : 
             <View>
-                <Text style={{fontSize: 20, marginBottom: 20}}>Вступительные экзамены:</Text>
                 {examsList(exams, passing)}
             </View>}
         </ScrollView>

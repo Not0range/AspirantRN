@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native';
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import { Button, StyleSheet, Text, View, StatusBar, BackHandler, TextInput } from 'react-native';
+import { Button, Text, View, BackHandler, TextInput, Alert } from 'react-native';
 import { GetUrl } from '../Utils';
 import Moment from 'moment';
 
 import { getNavigator } from '../MainMenu';
 
-export function personInfo({route}) {
+let nav;
+export function getNav(){
+    return nav;
+}
+
+export function personInfo({route, navigation}) {
+    nav = navigation;
     const [loading, setLoading] = useState(true);
     const [person, setPerson] = useState({
         updated: route.params && 'update' in route.params && route.params.update,
@@ -37,6 +41,10 @@ export function personInfo({route}) {
                             setLoading(false);
                         });
                     }
+                    else if(res.status == 404)
+                        getNavigator().push('PersonEdit');
+                    else
+                        Alert.alert('Ошибка', "Не удалось загрузить данные");
                 });
         }
     })
