@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native';
-import { createDrawerNavigator, DrawerItem, DrawerItemList } from '@react-navigation/drawer';
-import {
-  Button, StyleSheet, Text, View, StatusBar, ScrollView,
-  BackHandler, TextInput, SafeAreaView
-} from 'react-native';
+import { createDrawerNavigator, DrawerItemList } from '@react-navigation/drawer';
+import { StyleSheet, Text, View, StatusBar, ScrollView,
+  BackHandler, SafeAreaView } from 'react-native';
 import { GetUrl } from './Utils';
 
 import { personInfo } from './MainMenuScreens/Person';
@@ -76,18 +73,29 @@ const getTeachersAsync = async () =>{
   if(res.ok)
     teachers = await res.json();
 };
-let needUpdate = true;
-export function getUpdate(){
-  return needUpdate;
-}
-export function setUpdate(b){
-  needUpdate = b;
-}
 
-let backHandler;
+let backHandler = null;
+export function resetBackHandler(){
+  backHandler.remove();
+  backHandler = null;
+}
 
 export function Menu({ route, navigation }) {
   nav = navigation;
+
+  useEffect(() =>{
+    if(backHandler == null){
+      backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        () => {
+          backHandler.remove();
+          backHandler = null;
+          nav.navigate('MainScreen');
+          return true;
+        }
+      );
+    }
+  })
 
   useEffect(() => {
     fetch(`http://${GetUrl()}/api/faculty/List`)

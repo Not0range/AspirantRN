@@ -5,26 +5,42 @@ import { Button, StyleSheet, Text, View,
 import { GetUrl } from '../Utils';
 import Moment from 'moment';
 
-import { getNavigator, getFaculties, getCathedras, getSpecialties } from '../MainMenu';
+import { getNavigator, getFaculties, getCathedras, getSpecialties, resetBackHandler } from '../MainMenu';
 
-export function abiturientInfo({route}) {
+let needUpdate = true;
+export function setUpdate(){
+    needUpdate = true;
+}
+
+let nav;
+export function getNav(){
+    return nav;
+}
+
+export function abiturientInfo({route, navigation}) {
+    nav = navigation;
     const [loading, setLoading] = useState(true);
+    const [isAbiturient, setIsAbiturient] = useState(true);
     const [abiturient, setAbiturient] = useState({
-        updated: route.params && 'update' in route.params && route.params.update,
         specialties: []
     });
 
     useEffect(() => {
-        if (!abiturient.updated) {
+        if (needUpdate) {
+            needUpdate = false;
             setLoading(true);
             fetch(`http://${GetUrl()}/api/Abiturient/Self`, {credentials: 'include'})
                 .then(res => {
                     if (res.ok) {
                         res.json().then(r => {
-                            r.updated = true;
+                            setIsAbiturient(true);
                             setAbiturient(r);
                             setLoading(false);
                         });
+                    }
+                    else if(res.status == 404){
+                        setIsAbiturient(false);
+                        setLoading(false);
                     }
                 });
         }
@@ -33,11 +49,23 @@ export function abiturientInfo({route}) {
     return (
         <ScrollView style={{ flex: 1, margin: 10 }}>
             {loading ? <Text style={{alignSelf: 'center'}}>Загрузка...</Text> : 
+            (isAbiturient ?
             <View>
                 <Text style={{fontSize: 20, marginBottom: 20}}>Выбранные специальности для поступления:</Text>
                 {specialtiesList(abiturient.specialties)}
-                
-            </View>}
+                <View style={{ marginTop: 25 }}>
+                    <Button title='Редактировать' onPress={() => {
+                        resetBackHandler();
+                        getNavigator().push('AbiturientEdit', {abiturient: abiturient.specialties});
+                    }}></Button>
+                </View>
+            </View> : 
+            <View style={{ marginTop: 25 }}>
+                <Button title='Стать абитуриентом' onPress={() => {
+                    resetBackHandler();
+                    getNavigator().push('AbiturientEdit');
+                }}></Button>
+            </View>)}
         </ScrollView>
     );
 }

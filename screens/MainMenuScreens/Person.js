@@ -4,7 +4,7 @@ import { Button, Text, View, BackHandler, TextInput, Alert } from 'react-native'
 import { GetUrl } from '../Utils';
 import Moment from 'moment';
 
-import { getNavigator } from '../MainMenu';
+import { getNavigator, resetBackHandler } from '../MainMenu';
 
 let nav;
 export function getNav(){
@@ -64,6 +64,7 @@ export function personInfo({route, navigation}) {
                 <Text>Контакты: {person.contacts}</Text>
                 <View style={{ marginTop: 25 }}>
                     <Button title='Редактировать' onPress={() => {
+                        resetBackHandler();
                         getNavigator().navigate('PersonEdit', {person: person});
                     }}></Button>
                 </View>

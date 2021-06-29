@@ -1,18 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import 'react-native-gesture-handler';
 import { Button, StyleSheet, Text, View, 
-    StatusBar, BackHandler, TextInput, 
-    ScrollView, TouchableHighlight } from 'react-native';
+    ScrollView, TouchableOpacity } from 'react-native';
 import { GetUrl } from '../Utils';
 import Moment from 'moment';
 
-export function abstracts() {
-    const [loading, setLoading] = useState(true)
+import { getNavigator, resetBackHandler } from '../MainMenu';
+
+let needUpdate = true;
+export function setUpdate(){
+    needUpdate = true;
+}
+
+let nav;
+export function getNav(){
+    return nav;
+}
+
+export function abstracts({navigation}) {
+    nav = navigation;
+    const [loading, setLoading] = useState(true);
+    const [isAspirant, setIsAspirant] = useState(false);
     const [abstract, setAbstract] = useState([]);
-    const [temp, setTemp] = useState(false)
+    const [temp, setTemp] = useState(false);
 
     useEffect(() => {
-        if(loading){
+        if(needUpdate){
+            needUpdate = false;
+            setLoading(true);
             fetch(`http://${GetUrl()}/api/Abstract/List`, {credentials: 'include'})
                 .then(res => {
                     if (res.ok) {
@@ -21,13 +36,18 @@ export function abstracts() {
                                 i.expand = false;
                                 if(i.reason)
                                     i.state = 2;
-                                else if(!i.subject || !i.dateTimeEdit || !i.place)
+                                else if(i.subject || i.dateTimeEdit || i.place)
                                     i.state = 1
                                 else i.state = 0;
                             });
                             setAbstract(r);
                             setLoading(false);
+                            setIsAspirant(true);
                         });
+                    }
+                    else{
+                        setLoading(false);
+                        setIsAspirant(false);
                     }
                 });
         }
@@ -43,10 +63,14 @@ export function abstracts() {
                 </View>}
             </ScrollView>
             <View style={{position: 'absolute', right: 20, bottom: 20}}>
-                <TouchableHighlight style={styles.roundButton} 
-                underlayColor="white">
-                    <Text style={{fontSize: 48}}>+</Text>
-                </TouchableHighlight>
+                <TouchableOpacity style={[styles.roundButton, 
+                {display: isAspirant ? 'flex' : 'none'}]} 
+                underlayColor="white" onPress={() => {
+                    resetBackHandler();
+                    getNavigator().navigate('AbstractEdit');
+                }}>
+                    <Text style={{fontSize: 48, color: 'white'}}>+</Text>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -58,7 +82,7 @@ function abstractList(abstract, t, tf) {
     i.state == 1 ? 'rgba(255, 255, 0, 0.6)' : 'rgba(255, 0, 0, 0.6)'}]}>
         <View style={{flex: 1}}>
             <View style={{flexDirection: 'row'}}>
-                <View>
+                <View style={{flex: 1}}>
                     <Text>{i.subjectEdit ? i.subjectEdit : i.subject}</Text>
                     <Text>
                         {Moment(i.dateTimeEdit ? i.dateTimeEdit : i.dateTime).format('DD.MM.yyyy')}
@@ -75,20 +99,29 @@ function abstractList(abstract, t, tf) {
                 <Text>
                     {Moment(i.dateTimeEdit ? i.dateTimeEdit : i.dateTime).format('HH:mm')}
                 </Text>
+                <Text>
+                    {i.placeEdit ? i.placeEdit : i.place}
+                </Text>
                 <Text style={{marginBottom: 20}}>
                     {i.state == 0 ? 'Утверждено' : 
                     i.state == 1 ? 'Не утверждено' : 
                     `Не утверждено (${u.reason})`}
                 </Text>
-                <Button style={{marginBottom: 20}}
-                title="Скачать документ"
-                onPress={() => {
-                    
-                }}/>
                 <Button 
                 title="Редактировать"
                 onPress={() => {
-                    
+                    let obj;
+                    if(i.state == 0)
+                        obj = {subject: i.subject, place: i.place, 
+                            datetime: i.dateTime, 
+                            _datetime: Moment(i.dateTime).format('DD.MM.yyyy HH:mm')};
+                    else 
+                        obj = {subject: i.subjectEdit, place: i.placeEdit, 
+                            datetime: i.dateTimeEdit, 
+                            _datetime: Moment(i.dateTimeEdit).format('DD.MM.yyyy HH:mm')};
+                    obj.id = i.id;
+                    resetBackHandler();
+                    getNavigator().navigate('AbstractEdit', { abstract: obj });
                 }}/>
             </View>
         </View>

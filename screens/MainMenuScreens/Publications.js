@@ -2,17 +2,33 @@ import React, { useState, useEffect } from 'react';
 import 'react-native-gesture-handler';
 import { Button, StyleSheet, Text, View, 
     StatusBar, BackHandler, TextInput, 
-    ScrollView, TouchableHighlight } from 'react-native';
+    ScrollView, TouchableOpacity } from 'react-native';
 import { GetUrl } from '../Utils';
 import Moment from 'moment';
 
-export function publications() {
-    const [loading, setLoading] = useState(true)
+import { getNavigator, resetBackHandler } from '../MainMenu';
+
+let needUpdate = true;
+export function setUpdate(){
+    needUpdate = true;
+}
+
+let nav;
+export function getNav(){
+    return nav;
+}
+
+export function publications({navigation}) {
+    nav = navigation;
+    const [loading, setLoading] = useState(true);
+    const [isAspirant, setIsAspirant] = useState(false);
     const [publication, setPublication] = useState([]);
     const [temp, setTemp] = useState(false)
 
     useEffect(() => {
-        if(loading){
+        if(needUpdate){
+            setLoading(true);
+            needUpdate = false;
             fetch(`http://${GetUrl()}/api/Publication/List`, {credentials: 'include'})
                 .then(res => {
                     if (res.ok) {
@@ -21,13 +37,20 @@ export function publications() {
                                 i.expand = false;
                                 if(i.reason)
                                     i.state = 2;
-                                else if(!i.subject || !i.dateTimeEdit || !i.place)
+                                else if(i.subjectEdit || i.dateEdit 
+                                    || i.journalEdit || i.numberEdit
+                                    || i.pageEdit)
                                     i.state = 1
                                 else i.state = 0;
                             });
                             setPublication(r);
                             setLoading(false);
+                            setIsAspirant(true);
                         });
+                    }
+                    else{
+                        setLoading(false);
+                        setIsAspirant(false);
                     }
                 });
         }
@@ -43,10 +66,14 @@ export function publications() {
                 </View>}
             </ScrollView>
             <View style={{position: 'absolute', right: 20, bottom: 20}}>
-                <TouchableHighlight style={styles.roundButton} 
-                underlayColor="white">
+                <TouchableOpacity style={[styles.roundButton, 
+                {display: isAspirant ? 'flex' : 'none'}]} 
+                underlayColor="white" onPress={() => {
+                    resetBackHandler();
+                    getNavigator().navigate('PublicationEdit');
+                }}>
                     <Text style={{fontSize: 48}}>+</Text>
-                </TouchableHighlight>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -72,9 +99,9 @@ function publicationList(publication, t, tf) {
                 }}/>
             </View>
             <View style={{display: !i.expand ? 'none' : 'flex'}}>
-                <Text>{i.journalEdit ? i.journalEdit : i.journal}</Text>
-                <Text>{i.numderEdit ? i.numderEdit : i.numder}</Text>
-                <Text>{i.pageEdit ? i.pageEdit : i.page}</Text>
+                <Text>Журнал: {i.journalEdit ? i.journalEdit : i.journal}</Text>
+                <Text>Номер: {i.numberEdit ? i.numberEdit : i.number}</Text>
+                <Text>Страница: {i.pageEdit ? i.pageEdit : i.page}</Text>
                 <Text style={{marginBottom: 20}}>
                     {i.state == 0 ? 'Утверждено' : 
                     i.state == 1 ? 'Не утверждено' : 
@@ -83,7 +110,18 @@ function publicationList(publication, t, tf) {
                 <Button 
                 title="Редактировать"
                 onPress={() => {
-                    
+                    let obj;
+                    if(i.state == 0)
+                        obj = {subject: i.subject, journal: i.journal, 
+                            date: i.date, number: i.number.toString(), page: i.page.toString(),
+                            _date: Moment(i.date).format('DD.MM.yyyy')};
+                    else 
+                        obj = {subject: i.subjectEdit, journal: i.journalEdit, 
+                            date: i.dateEdit, number: i.numberEdit.toString(), page: i.pageEdit.toString(),
+                            _date: Moment(i.dateEdit).format('DD.MM.yyyy')};
+                    obj.id = i.id;
+                    resetBackHandler();
+                    getNavigator().navigate('PublicationEdit', { publication: obj });
                 }}/>
             </View>
         </View>

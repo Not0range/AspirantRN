@@ -26,7 +26,7 @@ export function teachersInfo({route}) {
         setSearch(t);
         let arr = getTeachers().filter(i => 
             (`${getCathedras().find(c => c.id == i.cathedraId).title} ${i.rank} ${i.lastname} ` + 
-            `${i.firstname} ${i.patronymic}`).includes(t));
+            `${i.firstname} ${i.patronymic}`).toLowerCase().includes(t.toLowerCase()));
         setTeachers(arr.map(i => {i.expand = false; return i}));
     }
 

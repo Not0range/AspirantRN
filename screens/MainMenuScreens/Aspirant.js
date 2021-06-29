@@ -8,6 +8,7 @@ import { getNavigator, getSpecialties, getTeachers } from '../MainMenu';
 
 export function aspirantInfo({route}){
     const [loading, setLoading] = useState(true);
+    const [isAspirant, setIsAspirant] = useState(false);
     const [aspirant, setAspirant] = useState({
         updated: route.params && 'update' in route.params && route.params.update,
         foreignLanguage: '',
@@ -29,8 +30,14 @@ export function aspirantInfo({route}){
                         res.json().then(r => {
                             r.updated = true;
                             setAspirant(r);
+                            setIsAspirant(true);
                             setLoading(false);
                         });
+                    }
+                    else{
+                        aspirant.updated = true;
+                        setIsAspirant(false);
+                        setLoading(false);
                     }
                 });
         }
@@ -39,6 +46,7 @@ export function aspirantInfo({route}){
     return (
         <View style={{ flex: 1, margin: 10 }}>
             {(loading? <Text style={{alignSelf: 'center'}}>Загрузка...</Text> :
+            (isAspirant ? 
             <View>
                 <Text>Изучаемый язык: {aspirant.foreignLanguage}</Text>
                 <Text>Форма обучения: {aspirant.enducationForm}</Text>
@@ -47,7 +55,7 @@ export function aspirantInfo({route}){
                 <Text>Приказ: {aspirant.decree}</Text>
                 <Text>Тема диссертации: {aspirant.dissertationTheme}</Text>
                 <Text>Руководитель: {getTeacher(aspirant.teacherId)}</Text>
-            </View>)}
+            </View>: <Text>Вы не аспирант</Text>))}
         </View>
     );
 }

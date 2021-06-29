@@ -1,18 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import 'react-native-gesture-handler';
 import { Button, StyleSheet, Text, View, 
-    StatusBar, BackHandler, TextInput, 
-    ScrollView, TouchableHighlight } from 'react-native';
+    ScrollView, TouchableOpacity } from 'react-native';
 import { GetUrl } from '../Utils';
 import Moment from 'moment';
 
-export function conferences() {
-    const [loading, setLoading] = useState(true)
+import { getNavigator, resetBackHandler } from '../MainMenu';
+
+let needUpdate = true;
+export function setUpdate(){
+    needUpdate = true;
+}
+
+let nav;
+export function getNav(){
+    return nav;
+}
+
+export function conferences({navigation}) {
+    nav = navigation;
+    const [loading, setLoading] = useState(true);
+    const [isAspirant, setIsAspirant] = useState(false);
     const [conference, setConference] = useState([]);
-    const [temp, setTemp] = useState(false)
+    const [temp, setTemp] = useState(false);
 
     useEffect(() => {
-        if(loading){
+        if(needUpdate){
+            needUpdate = false;
+            setLoading(true);
             fetch(`http://${GetUrl()}/api/Conference/List`, {credentials: 'include'})
                 .then(res => {
                     if (res.ok) {
@@ -21,13 +36,18 @@ export function conferences() {
                                 i.expand = false;
                                 if(i.reason)
                                     i.state = 2;
-                                else if(!i.subject || !i.dateTimeEdit || !i.place)
+                                else if(i.subjectEdit || i.dateTimeEdit || i.placeEdit)
                                     i.state = 1
                                 else i.state = 0;
                             });
                             setConference(r);
                             setLoading(false);
+                            setIsAspirant(true);
                         });
+                    }
+                    else{
+                        setLoading(false);
+                        setIsAspirant(false);
                     }
                 });
         }
@@ -43,10 +63,14 @@ export function conferences() {
                 </View>}
             </ScrollView>
             <View style={{position: 'absolute', right: 20, bottom: 20}}>
-                <TouchableHighlight style={styles.roundButton} 
-                underlayColor="white">
+                <TouchableOpacity style={[styles.roundButton, 
+                {display: isAspirant ? 'flex' : 'none'}]} 
+                underlayColor="white" onPress={() => {
+                    resetBackHandler();
+                    getNavigator().navigate('ConferenceEdit');
+                }}>
                     <Text style={{fontSize: 48}}>+</Text>
-                </TouchableHighlight>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -75,6 +99,9 @@ function conferenceList(conference, t, tf) {
                 <Text>
                     {Moment(i.dateTimeEdit ? i.dateTimeEdit : i.dateTime).format('HH:mm')}
                 </Text>
+                <Text>
+                    {i.placeEdit ? i.placeEdit : i.place}
+                </Text>
                 <Text style={{marginBottom: 20}}>
                     {i.state == 0 ? 'Утверждено' : 
                     i.state == 1 ? 'Не утверждено' : 
@@ -83,7 +110,18 @@ function conferenceList(conference, t, tf) {
                 <Button 
                 title="Редактировать"
                 onPress={() => {
-                    
+                    let obj;
+                    if(i.state == 0)
+                        obj = {subject: i.subject, place: i.place, 
+                            datetime: i.dateTime, 
+                            _datetime: Moment(i.dateTime).format('DD.MM.yyyy HH:mm')};
+                    else 
+                        obj = {subject: i.subjectEdit, place: i.placeEdit, 
+                            datetime: i.dateTimeEdit, 
+                            _datetime: Moment(i.dateTimeEdit).format('DD.MM.yyyy HH:mm')};
+                    obj.id = i.id;
+                    resetBackHandler();
+                    getNavigator().navigate('ConferenceEdit', { conference: obj });
                 }}/>
             </View>
         </View>
